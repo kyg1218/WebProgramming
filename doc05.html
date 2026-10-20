@@ -2,27 +2,16 @@
 <html>
     <head>
         <meta charset="UTF-8">
+        <style type="text/css">
+            p{font-size: 10pt;}
+            a:link {color: rgb(135, 135, 219);}
+            h3:before {content: "▲"; color:blue}
+            h3:after {content: "▼"; font: size 10pt}
+        </style>
     </head>
     <body>
-        <h3>다양한 입력 폼</h3>
-        <form method="get" action="https://lib.smu.ac.kr/search">
-        검색어 : <input type="text" name="q"/> <br>
-        캠퍼스: <input type="radio" name="campuscode" value="00" checked/>서울
-              <input type="radio" name="campuscode" value="01"/>천안<br>
-        직업: <select name="job"  size="2">
-              <option>학생</option> <option>회사원</option>
-              <option>공무원</option> <option>기타</option>
-            </select>
-        <p> 구입희망분야(복수선택 가능)<br>
-        - 분야: <input type="checkbox" name="books" value="computer"/>컴퓨터
-                <input type="checkbox" name="books" value="economy"/>경제
-                <input type="checkbox" name="books" value="common"/>상식<br>
-        비고: <br>
-              <textarea name="comments" rows="4" cols="40"/></textarea>
-        </p> <hr>
-            <input type="submit" value="신청"/>
-            <input type="reset" value="취소"/>
-            <input type="button" value="버튼" onClick="alert('버튼 클릭')"/>
-        </form>
+        <h3><strong>스타일시트</strong>이해하기</h3>
+        <p>이 예제는 <strong>CSS</strong>의 개념을 설명합니다.</p>
+        <p>선택자에 <a href="http://www.w3c.org">가상클래스</a>와 <a href="http://mm.smac.kr">선택자 조합</a>을 적용하여 스타일을 지정합니다.</p>
     </body>
 </html>

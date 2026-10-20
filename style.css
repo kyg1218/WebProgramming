@@ -55,3 +55,49 @@ td:first-child { white-space: nowrap; font-variant-numeric: tabular-nums; }
 }
 @media (max-width: 380px) { .week-grid { grid-template-columns: repeat(2, 1fr); } }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Compact desktop layout: preserve the original theme and HTML. */
+.page-header { padding: 20px 0; border-top-width: 5px; }
+.header-layout { gap: 24px; }
+.eyebrow { font-size: 11px; margin-bottom: 5px; }
+h1 { font-size: 34px; letter-spacing: -1px; margin-bottom: 6px; }
+.affiliation { font-size: 14px; margin-bottom: 4px; }
+.intro { font-size: 14px; }
+.github-link { padding: 10px 16px; font-size: 14px; }
+section { padding: 19px 0; }
+h2 { font-size: 21px; }
+.section-description { font-size: 13px; margin: 5px 0 11px; }
+caption { padding: 6px 14px; }
+th, td { padding: 9px 14px; }
+.course-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); overflow: hidden; }
+.course-list li { padding: 9px 14px; gap: 10px; font-size: 14px; min-width: 0; }
+.course-list li:nth-child(odd) { border-right: 1px solid var(--line); }
+.course-list li:last-child { grid-column: 1 / -1; border-right: 0; }
+.course-list a, .course-list li > span:first-child { overflow-wrap: anywhere; }
+.badge { padding: 2px 8px; }
+.week-grid { margin-top: 12px; gap: 10px; }
+.week { padding: 13px 15px; gap: 5px; }
+@media (max-width: 700px) {
+  .page-header { padding: 24px 0; }
+  .header-layout { gap: 16px; }
+  h1 { font-size: 32px; }
+  section { padding: 24px 0; }
+  .course-list { grid-template-columns: 1fr; }
+  .course-list li { flex-direction: row; align-items: center; padding: 12px 14px; }
+  .course-list li:nth-child(odd) { border-right: 0; }
+  .course-list li:last-child { grid-column: auto; }
+}
+@media (max-width: 380px) {
+  .course-list li { flex-direction: column; align-items: flex-start; gap: 6px; }
+}
+/* Fit the full course list within a 1280 x 720 CSS-pixel viewport. */
+@media (min-width: 701px) {
+  .page-header { padding: 13px 0; }
+  .eyebrow { margin-bottom: 3px; }
+  h1 { font-size: 30px; margin-bottom: 4px; }
+  section { padding: 12px 0; }
+  .section-description { margin: 4px 0 9px; }
+  caption { padding: 5px 14px; }
+  th, td { padding: 6px 14px; }
+  .course-list li { padding: 6px 14px; }
+}
