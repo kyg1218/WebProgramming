@@ -77,6 +77,25 @@
       .hero-art { border-radius: 55px 55px 12px 12px; }
       #home > p:nth-of-type(3) { max-width: 260px; margin: 12px auto; }
     }
+    [hidden] { display: none !important; }
+    .menu-filters { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 18px; }
+    .menu-filters button, .motion-toggle { font: inherit; font-size: 13px; padding: 9px 18px; border: 1px solid var(--line); border-radius: 24px; background: #fffcf6; color: var(--ink); cursor: pointer; transition: background-color .2s, color .2s; }
+    .menu-filters button[aria-pressed="true"] { background: var(--accent); color: #fffaf2; border-color: var(--accent); }
+    .menu-count { margin: 0 0 24px; color: var(--muted); font-size: 13px; }
+    .motion-toggle { margin-top: 12px; }
+    .moonlight, .firefly { position: absolute; pointer-events: none; }
+    .moonlight { inset: 0; background: radial-gradient(ellipse at 74% 18%, #fff4d580, transparent 62%); animation: moon-breathe 10s ease-in-out infinite; }
+    .firefly { width: 5px; height: 5px; border-radius: 50%; background: #fff9de; box-shadow: 0 0 12px 4px #ffefbd80; opacity: 0; animation: firefly-drift var(--duration) ease-in-out var(--delay) infinite; }
+    @keyframes moon-breathe { 0%, 100% { opacity: .12; } 50% { opacity: .3; } }
+    @keyframes firefly-drift { 0%, 100% { opacity: 0; transform: translate(0, 8px); } 40% { opacity: .65; } 70% { opacity: .3; } 90% { transform: translate(var(--drift), -24px); } }
+    .reveal-pending { opacity: 0; transform: translateY(12px); }
+    .reveal-visible { animation: menu-arrive .5s ease-out both; }
+    @keyframes menu-arrive { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+      .reveal-pending { opacity: 1; transform: none; }
+      .moonlight, .firefly { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -133,8 +152,16 @@
     <section id="menu" aria-labelledby="menu-title">
       <h2 id="menu-title">전체 메뉴</h2>
       <p>음료 16종과 디저트 10종을 준비했어요.</p>
-      <!-- 분류 버튼과 필터 동작은 4단계에서 구현합니다. -->
-      <ul class="menu-grid">
+      <div class="menu-filters" role="group" aria-label="메뉴 분류" hidden>
+        <button type="button" data-filter="전체" aria-pressed="true" aria-controls="menu-list">전체</button>
+        <button type="button" data-filter="커피" aria-pressed="false" aria-controls="menu-list">커피</button>
+        <button type="button" data-filter="논커피" aria-pressed="false" aria-controls="menu-list">논커피</button>
+        <button type="button" data-filter="티" aria-pressed="false" aria-controls="menu-list">티</button>
+        <button type="button" data-filter="에이드" aria-pressed="false" aria-controls="menu-list">에이드</button>
+        <button type="button" data-filter="디저트" aria-pressed="false" aria-controls="menu-list">디저트</button>
+      </div>
+      <p class="menu-count" role="status" aria-live="polite" aria-atomic="true" hidden></p>
+      <ul class="menu-grid" id="menu-list">
         <li class="menu-card" data-category="커피">
           <article>
             <p class="menu-category">커피</p>
@@ -353,7 +380,92 @@
     <a href="#home">맨 위로</a>
   </footer>
   <script>
-    // 4단계에서 분류 필터와 은은한 분위기 연출을 구현합니다.
+    const filters = document.querySelector('.menu-filters');
+    const filterButtons = [...filters.querySelectorAll('button')];
+    const menuCards = [...document.querySelectorAll('.menu-grid .menu-card')];
+    const menuCount = document.querySelector('.menu-count');
+    const allCards = [...document.querySelectorAll('.menu-card')];
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const smallScreen = window.matchMedia('(max-width: 760px)');
+    let observer;
+    let motionPaused = false;
+
+    function showCard(card) {
+      card.classList.remove('reveal-pending');
+      card.dataset.revealed = 'true';
+      if (observer) observer.unobserve(card);
+    }
+    function selectCategory(category) {
+      let count = 0;
+      menuCards.forEach(card => {
+        card.hidden = category !== '전체' && card.dataset.category !== category;
+        if (!card.hidden) {
+          count++;
+          // 필터 결과는 즉시 읽을 수 있도록 표시한다.
+          showCard(card);
+        }
+      });
+      filterButtons.forEach(button => button.setAttribute('aria-pressed', String(button.dataset.filter === category)));
+      menuCount.textContent = `${category} 메뉴 ${count}개`;
+    }
+    filterButtons.forEach(button => button.addEventListener('click', () => selectCategory(button.dataset.filter)));
+    menuCount.textContent = `전체 메뉴 ${menuCards.length}개`;
+    filters.hidden = false;
+    menuCount.hidden = false;
+
+    const heroArt = document.querySelector('.hero-art');
+    const motionButton = document.createElement('button');
+    motionButton.type = 'button';
+    motionButton.className = 'motion-toggle';
+    motionButton.setAttribute('aria-pressed', 'false');
+    heroArt.after(motionButton);
+
+    function updateMotion() {
+      const staticMode = reducedMotion.matches || motionPaused;
+      heroArt.querySelectorAll('.moonlight, .firefly').forEach(effect => effect.remove());
+      if (observer) observer.disconnect();
+      allCards.forEach(card => card.classList.remove('reveal-pending', 'reveal-visible'));
+      motionButton.hidden = reducedMotion.matches;
+      motionButton.textContent = motionPaused ? '분위기 효과 켜기' : '분위기 효과 멈추기';
+      motionButton.setAttribute('aria-pressed', String(motionPaused));
+      if (staticMode) return;
+
+      const glow = document.createElement('span');
+      glow.className = 'moonlight';
+      glow.setAttribute('aria-hidden', 'true');
+      heroArt.append(glow);
+      for (let i = 0; i < (smallScreen.matches ? 3 : 7); i++) {
+        const light = document.createElement('span');
+        light.className = 'firefly';
+        light.setAttribute('aria-hidden', 'true');
+        light.style.left = `${15 + Math.random() * 65}%`;
+        light.style.top = `${30 + Math.random() * 50}%`;
+        light.style.setProperty('--duration', `${7 + Math.random() * 5}s`);
+        light.style.setProperty('--delay', `${-Math.random() * 12}s`);
+        light.style.setProperty('--drift', `${Math.random() * 26 - 13}px`);
+        heroArt.append(light);
+      }
+      if ('IntersectionObserver' in window) {
+        observer = new IntersectionObserver(entries => {
+          entries.forEach(entry => {
+            if (entry.isIntersecting) {
+              showCard(entry.target);
+              entry.target.classList.add('reveal-visible');
+            }
+          });
+        }, { threshold: .08 });
+        allCards.forEach(card => {
+          if (!card.hidden && !card.dataset.revealed) {
+            card.classList.add('reveal-pending');
+            observer.observe(card);
+          }
+        });
+      }
+    }
+    motionButton.addEventListener('click', () => { motionPaused = !motionPaused; updateMotion(); });
+    reducedMotion.addEventListener('change', updateMotion);
+    smallScreen.addEventListener('change', updateMotion);
+    updateMotion();
   </script>
 </body>
 </html>
